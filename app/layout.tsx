@@ -8,6 +8,7 @@ import { SiteHeader } from "@/components/site-header"
 import { SiteFooter } from "@/components/site-footer"
 import { CartProvider } from "@/hooks/use-cart"
 import { OrderProvider } from "@/hooks/use-orders"
+import { SuppressWarnings } from "@/components/suppress-warnings"
 
 const inter = Inter({ subsets: ["latin"] })
 
@@ -25,6 +26,7 @@ export default function RootLayout({
   return (
     <html lang="en" suppressHydrationWarning>
       <body className={inter.className}>
+        <SuppressWarnings />
         <ThemeProvider
           attribute="class"
           defaultTheme="light"
