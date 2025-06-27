@@ -1,6 +1,6 @@
 "use client"
 
-import { useState, useEffect, use } from "react"
+import { useState, useEffect } from "react"
 import { useRouter } from "next/navigation"
 import Image from "next/image"
 import { ArrowLeft, Plus, Minus, ShoppingCart } from "lucide-react"
@@ -15,7 +15,7 @@ import { useCart } from "@/hooks/use-cart"
 import { useToast } from "@/hooks/use-toast"
 import { menuItems } from "@/data/menu-items"
 
-export default function MenuItemPage({ params }: { params: Promise<{ id: string }> }) {
+export default function MenuItemPage({ params }: { params: { id: string } }) {
   const router = useRouter()
   const { addItem, isHydrated } = useCart()
   const { toast } = useToast()
@@ -23,9 +23,8 @@ export default function MenuItemPage({ params }: { params: Promise<{ id: string 
   const [selectedAddOns, setSelectedAddOns] = useState<Array<{ name: string; price: number }>>([])
   const [specialInstructions, setSpecialInstructions] = useState("")
 
-  // Unwrap the params Promise
-  const resolvedParams = use(params)
-  const item = menuItems.find((item) => item.id === resolvedParams.id)
+  // Get the item directly from params.id
+  const item = menuItems.find((item) => item.id === params.id)
 
   useEffect(() => {
     if (!item && isHydrated) {

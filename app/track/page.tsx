@@ -21,19 +21,19 @@ export default function TrackOrderPage() {
   const orderIdFromParams = searchParams.get("order")
   const { toast } = useToast()
 
-  // Memoize filtered orders to prevent re-renders
-  const activeOrders = useMemo(() => orders.filter((order) => !order.completed), [orders])
-  const completedOrders = useMemo(() => orders.filter((order) => order.completed), [orders])
-
   // State for selected order
   const [selectedOrderId, setSelectedOrderId] = useState<string | null>(orderIdFromParams)
-
-  // Get the selected order
-  const selectedOrder = selectedOrderId ? getOrderById(selectedOrderId) : null
 
   // State for order status simulation
   const [simulatingOrders, setSimulatingOrders] = useState<Record<string, boolean>>({})
   const [orderSteps, setOrderSteps] = useState<Record<string, number>>({})
+
+  // Memoize filtered orders to prevent re-renders
+  const activeOrders = useMemo(() => orders.filter((order) => !order.completed), [orders])
+  const completedOrders = useMemo(() => orders.filter((order) => order.completed), [orders])
+
+  // Get the selected order
+  const selectedOrder = selectedOrderId ? getOrderById(selectedOrderId) : null
 
   // Initialize selected order when component mounts or URL changes
   useEffect(() => {
@@ -42,26 +42,12 @@ export default function TrackOrderPage() {
     } else if (activeOrders.length > 0 && !selectedOrderId) {
       setSelectedOrderId(activeOrders[0].id)
     }
-  }, [orderIdFromParams, activeOrders]) // Removed selectedOrderId from dependencies
+  }, [orderIdFromParams, activeOrders, selectedOrderId])
 
-  // Show loading state while hydrating
-  if (!isHydrated) {
-    return (
-      <div className="container px-4 md:px-6 py-8">
-        <div className="animate-pulse">
-          <div className="h-8 bg-gray-200 rounded w-1/4 mb-6"></div>
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-            {[1, 2, 3].map((i) => (
-              <div key={i} className="h-64 bg-gray-200 rounded"></div>
-            ))}
-          </div>
-        </div>
-      </div>
-    )
-  }
-
-  // Initialize order steps based on their status
+  // Initialize order steps based on their status - always call this hook
   useEffect(() => {
+    if (!isHydrated) return
+
     const steps: Record<string, number> = {}
 
     orders.forEach((order) => {
@@ -69,18 +55,12 @@ export default function TrackOrderPage() {
     })
 
     setOrderSteps(steps)
-  }, [orders]) // Changed dependency from activeOrders to orders
+  }, [orders, isHydrated])
 
-  // Start simulation for a specific order
-  const startSimulation = (orderId: string) => {
-    setSimulatingOrders((prev) => ({
-      ...prev,
-      [orderId]: true,
-    }))
-  }
-
-  // Simulate order progress
+  // Simulate order progress - always call this hook
   useEffect(() => {
+    if (!isHydrated) return
+
     // Create an object to store all timers so we can clean them up
     const timers: Record<string, NodeJS.Timeout> = {}
 
@@ -130,7 +110,31 @@ export default function TrackOrderPage() {
     return () => {
       Object.values(timers).forEach((timer) => clearTimeout(timer))
     }
-  }, [simulatingOrders, orders, toast, updateOrderStatus]) // Removed orderSteps from dependencies
+  }, [simulatingOrders, orders, orderSteps, toast, updateOrderStatus, isHydrated])
+
+  // Start simulation for a specific order
+  const startSimulation = (orderId: string) => {
+    setSimulatingOrders((prev) => ({
+      ...prev,
+      [orderId]: true,
+    }))
+  }
+
+  // Show loading state while hydrating
+  if (!isHydrated) {
+    return (
+      <div className="container px-4 md:px-6 py-8">
+        <div className="animate-pulse">
+          <div className="h-8 bg-gray-200 rounded w-1/4 mb-6"></div>
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+            {[1, 2, 3].map((i) => (
+              <div key={i} className="h-64 bg-gray-200 rounded"></div>
+            ))}
+          </div>
+        </div>
+      </div>
+    )
+  }
 
   // If no orders exist, show empty state
   if (orders.length === 0) {
