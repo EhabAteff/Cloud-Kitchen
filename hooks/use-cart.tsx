@@ -1,11 +1,37 @@
 "use client"
 
+import type React from "react"
 import { createContext, useContext, useEffect, useState } from "react"
 
-const CartContext = createContext(null)
+export type CartItem = {
+  id: string
+  name: string
+  price: number
+  image: string
+  quantity: number
+  totalPrice: number
+  customizations?: {
+    addOns?: Array<{ name: string; price: number }>
+    specialInstructions?: string
+  }
+}
 
-export function CartProvider({ children }) {
-  const [items, setItems] = useState([])
+type CartContextType = {
+  items: CartItem[]
+  addItem: (item: CartItem) => void
+  removeItem: (itemId: string) => void
+  updateQuantity: (itemId: string, quantity: number) => void
+  clearCart: () => void
+  totalAmount: number
+  totalItems: number
+  isHydrated: boolean
+}
+
+const CartContext = createContext<CartContextType | null>(null)
+
+export function CartProvider({ children }: { children: React.ReactNode }) {
+  const [items, setItems] = useState<CartItem[]>([])
+  const [isHydrated, setIsHydrated] = useState(false)
 
   // Load cart from localStorage on mount
   useEffect(() => {
@@ -16,67 +42,55 @@ export function CartProvider({ children }) {
       }
     } catch (error) {
       console.error("Failed to load cart from localStorage:", error)
+    } finally {
+      setIsHydrated(true)
     }
   }, [])
 
-  // Save cart to localStorage when it changes
+  // Save cart to localStorage when items change (but only after hydration)
   useEffect(() => {
-    try {
-      localStorage.setItem("cart", JSON.stringify(items))
-    } catch (error) {
-      console.error("Failed to save cart to localStorage:", error)
+    if (isHydrated) {
+      try {
+        localStorage.setItem("cart", JSON.stringify(items))
+      } catch (error) {
+        console.error("Failed to save cart to localStorage:", error)
+      }
     }
-  }, [items])
+  }, [items, isHydrated])
 
-  const addItem = (item) => {
+  const addItem = (newItem: CartItem) => {
     setItems((prevItems) => {
-      // Check if item already exists with same customizations
       const existingItemIndex = prevItems.findIndex(
-        (i) => i.id === item.id && JSON.stringify(i.customizations) === JSON.stringify(item.customizations),
+        (item) =>
+          item.id === newItem.id && JSON.stringify(item.customizations) === JSON.stringify(newItem.customizations),
       )
 
       if (existingItemIndex > -1) {
-        // Update quantity of existing item
+        // Item exists, update quantity
         const updatedItems = [...prevItems]
         const existingItem = updatedItems[existingItemIndex]
-        updatedItems[existingItemIndex] = {
-          ...existingItem,
-          quantity: existingItem.quantity + item.quantity,
-          totalPrice: (existingItem.quantity + item.quantity) * existingItem.price,
-        }
+        existingItem.quantity += newItem.quantity
+        existingItem.totalPrice = existingItem.price * existingItem.quantity
         return updatedItems
       } else {
-        // Add new item
-        return [...prevItems, item]
+        // New item, add to cart
+        return [...prevItems, newItem]
       }
     })
   }
 
-  const updateItemQuantity = (item, quantity) => {
-    if (quantity < 1) {
-      removeItem(item)
+  const removeItem = (itemId: string) => {
+    setItems((prevItems) => prevItems.filter((item) => item.id !== itemId))
+  }
+
+  const updateQuantity = (itemId: string, quantity: number) => {
+    if (quantity <= 0) {
+      removeItem(itemId)
       return
     }
 
     setItems((prevItems) =>
-      prevItems.map((i) => {
-        if (i.id === item.id && JSON.stringify(i.customizations) === JSON.stringify(item.customizations)) {
-          return {
-            ...i,
-            quantity,
-            totalPrice: quantity * i.price,
-          }
-        }
-        return i
-      }),
-    )
-  }
-
-  const removeItem = (item) => {
-    setItems((prevItems) =>
-      prevItems.filter(
-        (i) => !(i.id === item.id && JSON.stringify(i.customizations) === JSON.stringify(item.customizations)),
-      ),
+      prevItems.map((item) => (item.id === itemId ? { ...item, quantity, totalPrice: item.price * quantity } : item)),
     )
   }
 
@@ -84,14 +98,20 @@ export function CartProvider({ children }) {
     setItems([])
   }
 
+  const totalAmount = items.reduce((sum, item) => sum + item.totalPrice, 0)
+  const totalItems = items.reduce((sum, item) => sum + item.quantity, 0)
+
   return (
     <CartContext.Provider
       value={{
         items,
         addItem,
-        updateItemQuantity,
         removeItem,
+        updateQuantity,
         clearCart,
+        totalAmount,
+        totalItems,
+        isHydrated,
       }}
     >
       {children}

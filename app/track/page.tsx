@@ -17,7 +17,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 export default function TrackOrderPage() {
   const searchParams = useSearchParams()
   const router = useRouter()
-  const { orders, getOrderById, updateOrderStatus } = useOrders()
+  const { orders, getOrderById, updateOrderStatus, isHydrated } = useOrders()
   const orderIdFromParams = searchParams.get("order")
   const { toast } = useToast()
 
@@ -44,6 +44,22 @@ export default function TrackOrderPage() {
     }
   }, [orderIdFromParams, activeOrders]) // Removed selectedOrderId from dependencies
 
+  // Show loading state while hydrating
+  if (!isHydrated) {
+    return (
+      <div className="container px-4 md:px-6 py-8">
+        <div className="animate-pulse">
+          <div className="h-8 bg-gray-200 rounded w-1/4 mb-6"></div>
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+            {[1, 2, 3].map((i) => (
+              <div key={i} className="h-64 bg-gray-200 rounded"></div>
+            ))}
+          </div>
+        </div>
+      </div>
+    )
+  }
+
   // Initialize order steps based on their status
   useEffect(() => {
     const steps: Record<string, number> = {}
@@ -54,74 +70,6 @@ export default function TrackOrderPage() {
 
     setOrderSteps(steps)
   }, [orders]) // Changed dependency from activeOrders to orders
-
-  // Map order status to step number based on order type
-  const getStepFromStatus = (status: OrderStatus, type: OrderType): number => {
-    if (type === "delivery") {
-      switch (status) {
-        case "confirmed":
-          return 1
-        case "preparing":
-          return 2
-        case "ready":
-          return 3
-        case "delivering":
-          return 4
-        case "delivered":
-          return 5
-        default:
-          return 1
-      }
-    } else {
-      // Pickup order
-      switch (status) {
-        case "confirmed":
-          return 1
-        case "preparing":
-          return 2
-        case "ready_for_pickup":
-          return 3
-        case "picked_up":
-          return 4
-        default:
-          return 1
-      }
-    }
-  }
-
-  // Map step number to order status based on order type
-  const getStatusFromStep = (step: number, type: OrderType): OrderStatus => {
-    if (type === "delivery") {
-      switch (step) {
-        case 1:
-          return "confirmed"
-        case 2:
-          return "preparing"
-        case 3:
-          return "ready"
-        case 4:
-          return "delivering"
-        case 5:
-          return "delivered"
-        default:
-          return "confirmed"
-      }
-    } else {
-      // Pickup order
-      switch (step) {
-        case 1:
-          return "confirmed"
-        case 2:
-          return "preparing"
-        case 3:
-          return "ready_for_pickup"
-        case 4:
-          return "picked_up"
-        default:
-          return "confirmed"
-      }
-    }
-  }
 
   // Start simulation for a specific order
   const startSimulation = (orderId: string) => {
@@ -322,7 +270,7 @@ function OrderCard({
         </p>
       </CardContent>
       <CardFooter className="flex gap-2 pt-2">
-        <Button variant="outline" size="sm" className="flex-1" onClick={onSelect}>
+        <Button variant="outline" size="sm" className="flex-1 bg-transparent" onClick={onSelect}>
           Track Details
         </Button>
         {!isSimulating && !order.completed && step < (order.type === "delivery" ? 5 : 4) && (
@@ -525,7 +473,7 @@ function OrderTrackingDetail({ order, currentStep }: { order: Order; currentStep
         </Card>
         {isCompleted && (
           <div className="mt-6">
-            <Button variant="outline" className="w-full" asChild>
+            <Button variant="outline" className="w-full bg-transparent" asChild>
               <Link href="/menu">Order Again</Link>
             </Button>
           </div>
@@ -628,5 +576,73 @@ function getStatusLabel(status: OrderStatus): string {
       return "Picked Up"
     default:
       return "Processing"
+  }
+}
+
+// Map order status to step number based on order type
+function getStepFromStatus(status: OrderStatus, type: OrderType): number {
+  if (type === "delivery") {
+    switch (status) {
+      case "confirmed":
+        return 1
+      case "preparing":
+        return 2
+      case "ready":
+        return 3
+      case "delivering":
+        return 4
+      case "delivered":
+        return 5
+      default:
+        return 1
+    }
+  } else {
+    // Pickup order
+    switch (status) {
+      case "confirmed":
+        return 1
+      case "preparing":
+        return 2
+      case "ready_for_pickup":
+        return 3
+      case "picked_up":
+        return 4
+      default:
+        return 1
+    }
+  }
+}
+
+// Map step number to order status based on order type
+function getStatusFromStep(step: number, type: OrderType): OrderStatus {
+  if (type === "delivery") {
+    switch (step) {
+      case 1:
+        return "confirmed"
+      case 2:
+        return "preparing"
+      case 3:
+        return "ready"
+      case 4:
+        return "delivering"
+      case 5:
+        return "delivered"
+      default:
+        return "confirmed"
+    }
+  } else {
+    // Pickup order
+    switch (step) {
+      case 1:
+        return "confirmed"
+      case 2:
+        return "preparing"
+      case 3:
+        return "ready_for_pickup"
+      case 4:
+        return "picked_up"
+      default:
+        return "confirmed"
+    }
   }
 }

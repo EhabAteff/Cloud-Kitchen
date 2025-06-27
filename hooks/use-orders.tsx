@@ -40,12 +40,14 @@ type OrderContextType = {
   placeOrder: (orderData: Omit<Order, "id" | "status" | "placedAt" | "completed">) => string
   updateOrderStatus: (orderId: string, status: OrderStatus) => void
   getOrderById: (orderId: string) => Order | undefined
+  isHydrated: boolean
 }
 
 const OrderContext = createContext<OrderContextType | null>(null)
 
 export function OrderProvider({ children }: { children: React.ReactNode }) {
   const [orders, setOrders] = useState<Order[]>([])
+  const [isHydrated, setIsHydrated] = useState(false)
 
   // Load orders from localStorage on mount
   useEffect(() => {
@@ -57,17 +59,21 @@ export function OrderProvider({ children }: { children: React.ReactNode }) {
       }
     } catch (error) {
       console.error("Failed to load orders from localStorage:", error)
+    } finally {
+      setIsHydrated(true)
     }
   }, [])
 
-  // Save orders to localStorage when they change
+  // Save orders to localStorage when they change (but only after hydration)
   useEffect(() => {
-    try {
-      localStorage.setItem("orders", JSON.stringify(orders))
-    } catch (error) {
-      console.error("Failed to save orders to localStorage:", error)
+    if (isHydrated) {
+      try {
+        localStorage.setItem("orders", JSON.stringify(orders))
+      } catch (error) {
+        console.error("Failed to save orders to localStorage:", error)
+      }
     }
-  }, [orders])
+  }, [orders, isHydrated])
 
   const placeOrder = (orderData: Omit<Order, "id" | "status" | "placedAt" | "completed">) => {
     // Generate a random order ID (in a real app, this would come from the backend)
@@ -120,6 +126,7 @@ export function OrderProvider({ children }: { children: React.ReactNode }) {
         placeOrder,
         updateOrderStatus,
         getOrderById,
+        isHydrated,
       }}
     >
       {children}

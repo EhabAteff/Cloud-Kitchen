@@ -13,7 +13,7 @@ import { useCart } from "@/hooks/use-cart"
 export function SiteHeader() {
   const pathname = usePathname()
   const [isMenuOpen, setIsMenuOpen] = useState(false)
-  const { items } = useCart()
+  const { items, isHydrated } = useCart()
 
   const routes = [
     {
@@ -59,7 +59,7 @@ export function SiteHeader() {
             <Button asChild variant="ghost" size="icon" className="relative">
               <Link href="/cart">
                 <ShoppingCart className="h-5 w-5" />
-                {items.length > 0 && (
+                {isHydrated && items.length > 0 && (
                   <Badge className="absolute -top-1 -right-1 h-5 w-5 rounded-full p-0 flex items-center justify-center">
                     {items.length}
                   </Badge>
