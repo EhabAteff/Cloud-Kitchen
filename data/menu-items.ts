@@ -1,4 +1,4 @@
-export type MenuItem = {
+export interface MenuItem {
   id: string
   name: string
   description: string
@@ -6,121 +6,119 @@ export type MenuItem = {
   image: string
   category: "mains" | "sides" | "desserts" | "drinks"
   isCustomizable: boolean
-  addOns?: AddOn[] // Only present for customizable items
-}
-
-export type AddOn = {
-  id: string
-  name: string
-  price: number
+  addOns?: Array<{
+    name: string
+    price: number
+  }>
 }
 
 export const menuItems: MenuItem[] = [
   {
-    id: "1",
-    name: "Fool With Tahini",
-    description: "Crushed beans with our delicous tahini sauce",
-    price: 5.99,
+    id: "fool",
+    name: "Fool Medames",
+    description: "Traditional Egyptian fava beans served with tahini, olive oil, and fresh vegetables",
+    price: 8.99,
     image: "/images/fool.jpg",
     category: "mains",
     isCustomizable: true,
     addOns: [
-      { id: "extra-tahini", name: "Extra Tahini", price: 0.99 },
-      { id: "olive-oil", name: "Olive Oil", price: 0.5 },
-      { id: "lemon", name: "Fresh Lemon", price: 0.5 },
-      { id: "hot-sauce", name: "Hot Sauce", price: 0.75 },
+      { name: "Extra Tahini", price: 1.5 },
+      { name: "Boiled Egg", price: 2.0 },
+      { name: "Extra Vegetables", price: 1.0 },
     ],
   },
   {
-    id: "2",
+    id: "koshary",
     name: "Koshary",
-    description:
-      "Rice with pasta, onions and lentils mixed together with our special tomoto soup and our secret spices",
-    price: 9.99,
+    description: "Egypt's national dish with rice, lentils, pasta, and spicy tomato sauce",
+    price: 12.99,
     image: "/images/kosharii.jpg",
     category: "mains",
-    isCustomizable: false,
+    isCustomizable: true,
     addOns: [
-      { id: "extra-sauce", name: "Extra Tomato Sauce", price: 0.99 },
-      { id: "extra-onions", name: "Extra Crispy Onions", price: 0.75 },
-      { id: "extra-spicy", name: "Extra Spicy", price: 0.5 },
-      { id: "garlic-sauce", name: "Garlic Sauce", price: 0.99 },
+      { name: "Extra Sauce", price: 1.0 },
+      { name: "Extra Fried Onions", price: 1.5 },
+      { name: "Spicy Level Up", price: 0.5 },
     ],
   },
   {
-    id: "3",
-    name: "Mashed Potatos",
-    description: "Mashed potatos with butter and creamy cheese",
-    price: 7.99,
+    id: "mashed-potato",
+    name: "Creamy Mashed Potato",
+    description: "Smooth and creamy mashed potatoes with butter and herbs",
+    price: 6.99,
     image: "/images/mpotato.webp",
     category: "sides",
     isCustomizable: true,
     addOns: [
-      { id: "extra-cheese", name: "Extra Cheese", price: 1.5 },
-      { id: "bacon-bits", name: "Bacon Bits", price: 1.99 },
-      { id: "chives", name: "Fresh Chives", price: 0.5 },
-      { id: "sour-cream", name: "Sour Cream", price: 0.99 },
+      { name: "Extra Butter", price: 0.75 },
+      { name: "Cheese Topping", price: 2.0 },
+      { name: "Bacon Bits", price: 2.5 },
     ],
   },
   {
-    id: "4",
-    name: "Rice Pudding",
-    description: "Our famous rice pudding made with full cream milk and finest Egyptian rice",
-    price: 8.99,
-    image: "/images/rice-pudding.webp",
-    category: "desserts",
-    isCustomizable: true,
-    addOns: [
-      { id: "cinnamon", name: "Cinnamon", price: 0.5 },
-      { id: "honey", name: "Honey", price: 0.99 },
-      { id: "nuts", name: "Mixed Nuts", price: 1.5 },
-      { id: "raisins", name: "Raisins", price: 0.99 },
-    ],
-  },
-  {
-    id: "5",
-    name: "Garden Salad",
-    description: "Fresh mixed greens with your choice of dressing",
-    price: 3.99,
+    id: "green-salad",
+    name: "Fresh Green Salad",
+    description: "Mixed greens with cucumber, tomatoes, and house dressing",
+    price: 7.99,
     image: "/images/green-salad.jpg",
     category: "sides",
-    isCustomizable: false,
+    isCustomizable: true,
+    addOns: [
+      { name: "Grilled Chicken", price: 4.0 },
+      { name: "Feta Cheese", price: 2.5 },
+      { name: "Avocado", price: 3.0 },
+      { name: "Extra Dressing", price: 0.5 },
+    ],
   },
   {
-    id: "6",
-    name: "Potato Fries",
-    description: "Crispy potato fries with special seasoning",
+    id: "french-fries",
+    name: "Crispy French Fries",
+    description: "Golden crispy fries seasoned with sea salt",
     price: 4.99,
     image: "/images/fries.webp",
     category: "sides",
     isCustomizable: true,
     addOns: [
-      { id: "cheese-sauce", name: "Cheese Sauce", price: 1.5 },
-      { id: "truffle-oil", name: "Truffle Oil", price: 2.5 },
-      { id: "garlic-aioli", name: "Garlic Aioli", price: 0.99 },
+      { name: "Cheese Sauce", price: 1.5 },
+      { name: "Garlic Aioli", price: 1.0 },
+      { name: "Truffle Oil", price: 2.0 },
     ],
   },
   {
-    id: "7",
-    name: "Freshly Squeezed Orange Juice",
-    description: "100% pure orange juice",
+    id: "orange-juice",
+    name: "Fresh Orange Juice",
+    description: "Freshly squeezed orange juice, no added sugar",
     price: 3.99,
     image: "/images/orange-juice.jpg",
     category: "drinks",
     isCustomizable: false,
   },
   {
-    id: "8",
+    id: "lemon-tea",
     name: "Lemon Iced Tea",
-    description: "Cold lemon iced tea",
+    description: "Refreshing iced tea with fresh lemon and mint",
     price: 2.99,
     image: "/images/lemon-tea.webp",
     category: "drinks",
     isCustomizable: true,
     addOns: [
-      { id: "extra-lemon", name: "Extra Lemon", price: 0.5 },
-      { id: "mint", name: "Fresh Mint", price: 0.75 },
-      { id: "honey", name: "Honey", price: 0.5 },
+      { name: "Extra Lemon", price: 0.5 },
+      { name: "Extra Mint", price: 0.5 },
+      { name: "Honey", price: 0.75 },
+    ],
+  },
+  {
+    id: "rice-pudding",
+    name: "Rice Pudding",
+    description: "Creamy rice pudding with cinnamon and vanilla",
+    price: 5.99,
+    image: "/images/rice-pudding.webp",
+    category: "desserts",
+    isCustomizable: true,
+    addOns: [
+      { name: "Extra Cinnamon", price: 0.25 },
+      { name: "Raisins", price: 1.0 },
+      { name: "Nuts", price: 1.5 },
     ],
   },
 ]

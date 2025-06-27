@@ -207,7 +207,19 @@ export default function CheckoutPage() {
                     </div>
                     <div className="space-y-2">
                       <Label htmlFor="phone">Phone Number</Label>
-                      <Input id="phone" name="phone" type="tel" placeholder="Enter your phone number" required />
+                      <Input
+                        id="phone"
+                        name="phone"
+                        type="tel"
+                        placeholder="Enter your phone number"
+                        pattern="[0-9]*"
+                        inputMode="numeric"
+                        onInput={(e) => {
+                          const target = e.target as HTMLInputElement
+                          target.value = target.value.replace(/[^0-9]/g, "")
+                        }}
+                        required
+                      />
                     </div>
                   </div>
                 </CardContent>

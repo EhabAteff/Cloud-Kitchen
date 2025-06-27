@@ -1,184 +1,197 @@
 "use client"
 
 import { useState, useEffect } from "react"
-import Image from "next/image"
 import { useRouter } from "next/navigation"
-import { ChevronLeft, Minus, Plus } from "lucide-react"
+import Image from "next/image"
+import { ArrowLeft, Plus, Minus, ShoppingCart } from "lucide-react"
 
 import { Button } from "@/components/ui/button"
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Checkbox } from "@/components/ui/checkbox"
 import { Label } from "@/components/ui/label"
-import { Separator } from "@/components/ui/separator"
-import { useToast } from "@/hooks/use-toast"
+import { Textarea } from "@/components/ui/textarea"
+import { Badge } from "@/components/ui/badge"
 import { useCart } from "@/hooks/use-cart"
+import { useToast } from "@/hooks/use-toast"
 import { menuItems } from "@/data/menu-items"
 
-export default function MenuItemPage({ params }) {
+export default function MenuItemPage({ params }: { params: { id: string } }) {
   const router = useRouter()
+  const { addItem, isHydrated } = useCart()
   const { toast } = useToast()
-  const { addItem } = useCart()
   const [quantity, setQuantity] = useState(1)
-  const [selectedAddOns, setSelectedAddOns] = useState([])
+  const [selectedAddOns, setSelectedAddOns] = useState<Array<{ name: string; price: number }>>([])
   const [specialInstructions, setSpecialInstructions] = useState("")
-  const [isLoading, setIsLoading] = useState(true)
 
-  // Find the menu item based on the ID
-  const menuItem = menuItems.find((item) => item.id === params.id)
+  const item = menuItems.find((item) => item.id === params.id)
 
-  // Handle case when item is not found
   useEffect(() => {
-    if (!menuItem && !isLoading) {
-      toast({
-        title: "Item not found",
-        description: "The requested menu item could not be found.",
-        variant: "destructive",
-      })
+    if (!item && isHydrated) {
       router.push("/menu")
-    } else {
-      setIsLoading(false)
     }
-  }, [menuItem, router, toast, isLoading])
+  }, [item, router, isHydrated])
 
-  // If still loading or item not found, show loading state
-  if (isLoading || !menuItem) {
+  if (!isHydrated) {
     return (
       <div className="container px-4 md:px-6 py-8">
-        <div className="flex items-center justify-center h-[60vh]">
-          <p>Loading menu item...</p>
+        <div className="animate-pulse">
+          <div className="h-8 bg-gray-200 rounded w-1/4 mb-6"></div>
+          <div className="grid md:grid-cols-2 gap-8">
+            <div className="h-96 bg-gray-200 rounded"></div>
+            <div className="space-y-4">
+              <div className="h-8 bg-gray-200 rounded w-3/4"></div>
+              <div className="h-4 bg-gray-200 rounded w-full"></div>
+              <div className="h-4 bg-gray-200 rounded w-2/3"></div>
+              <div className="h-32 bg-gray-200 rounded"></div>
+            </div>
+          </div>
         </div>
       </div>
     )
   }
 
-  const handleAddOnToggle = (addOnId) => {
-    setSelectedAddOns((current) => {
-      if (current.includes(addOnId)) {
-        return current.filter((id) => id !== addOnId)
-      } else {
-        return [...current, addOnId]
-      }
-    })
+  if (!item) {
+    return null
+  }
+
+  const handleAddOnChange = (addOn: { name: string; price: number }, checked: boolean) => {
+    if (checked) {
+      setSelectedAddOns([...selectedAddOns, addOn])
+    } else {
+      setSelectedAddOns(selectedAddOns.filter((a) => a.name !== addOn.name))
+    }
   }
 
   const calculateTotalPrice = () => {
-    let total = menuItem.price * quantity
-
-    // Add the price of selected add-ons
-    if (menuItem.isCustomizable && menuItem.addOns) {
-      menuItem.addOns.forEach((addOn) => {
-        if (selectedAddOns.includes(addOn.id)) {
-          total += addOn.price * quantity
-        }
-      })
-    }
-
-    return total
+    const basePrice = item.price * quantity
+    const addOnsPrice = selectedAddOns.reduce((total, addOn) => total + addOn.price, 0) * quantity
+    return basePrice + addOnsPrice
   }
 
   const handleAddToCart = () => {
-    // Get the selected add-on objects with their details
-    const selectedAddOnDetails =
-      menuItem.isCustomizable && menuItem.addOns
-        ? menuItem.addOns.filter((addOn) => selectedAddOns.includes(addOn.id))
-        : []
-
-    const customizations = menuItem.isCustomizable
-      ? {
-          addOns: selectedAddOnDetails,
-          specialInstructions,
-        }
-      : null
-
-    addItem({
-      ...menuItem,
+    const cartItem = {
+      id: item.id,
+      name: item.name,
+      price: item.price,
+      image: item.image,
       quantity,
-      customizations,
       totalPrice: calculateTotalPrice(),
-    })
+      customizations: {
+        addOns: selectedAddOns.length > 0 ? selectedAddOns : undefined,
+        specialInstructions: specialInstructions || undefined,
+      },
+    }
+
+    addItem(cartItem)
 
     toast({
-      title: "Added to cart",
-      description: `${quantity} x ${menuItem.name} added to your cart`,
+      title: "Added to cart!",
+      description: `${quantity}x ${item.name} has been added to your cart.`,
     })
-  }
 
-  const incrementQuantity = () => setQuantity(quantity + 1)
-  const decrementQuantity = () => {
-    if (quantity > 1) {
-      setQuantity(quantity - 1)
-    }
+    // Reset form
+    setQuantity(1)
+    setSelectedAddOns([])
+    setSpecialInstructions("")
   }
 
   return (
     <div className="container px-4 md:px-6 py-8">
       <Button variant="ghost" className="mb-6 gap-1" onClick={() => router.back()}>
-        <ChevronLeft className="h-4 w-4" /> Back to Menu
+        <ArrowLeft className="h-4 w-4" /> Back to Menu
       </Button>
 
       <div className="grid md:grid-cols-2 gap-8">
-        <div className="relative h-[300px] md:h-[400px] rounded-lg overflow-hidden">
-          <Image src={menuItem.image || "/placeholder.svg"} alt={menuItem.name} fill className="object-cover" />
+        <div className="relative aspect-square overflow-hidden rounded-lg">
+          <Image src={item.image || "/placeholder.svg"} alt={item.name} fill className="object-cover" />
+          {item.isCustomizable && (
+            <Badge className="absolute top-4 right-4" variant="secondary">
+              Customizable
+            </Badge>
+          )}
         </div>
 
-        <div>
-          <h1 className="text-3xl font-bold">{menuItem.name}</h1>
-          <p className="text-muted-foreground mt-2">{menuItem.description}</p>
-          <p className="text-2xl font-bold mt-4">${menuItem.price.toFixed(2)}</p>
+        <div className="space-y-6">
+          <div>
+            <h1 className="text-3xl font-bold">{item.name}</h1>
+            <p className="text-xl font-semibold text-primary mt-2">${item.price.toFixed(2)}</p>
+            <p className="text-muted-foreground mt-4">{item.description}</p>
+          </div>
 
-          <Separator className="my-6" />
-
-          {menuItem.isCustomizable && (
-            <div className="space-y-6">
-              {menuItem.addOns && menuItem.addOns.length > 0 && (
+          {item.isCustomizable && item.addOns && item.addOns.length > 0 && (
+            <Card>
+              <CardHeader>
+                <CardTitle>Customize Your Order</CardTitle>
+              </CardHeader>
+              <CardContent className="space-y-4">
                 <div>
                   <h3 className="font-semibold mb-3">Add-ons</h3>
-                  <div className="space-y-2">
-                    {menuItem.addOns.map((addOn) => (
-                      <div key={addOn.id} className="flex items-center justify-between">
+                  <div className="space-y-3">
+                    {item.addOns.map((addOn) => (
+                      <div key={addOn.name} className="flex items-center justify-between">
                         <div className="flex items-center space-x-2">
                           <Checkbox
-                            id={addOn.id}
-                            checked={selectedAddOns.includes(addOn.id)}
-                            onCheckedChange={() => handleAddOnToggle(addOn.id)}
+                            id={addOn.name}
+                            checked={selectedAddOns.some((a) => a.name === addOn.name)}
+                            onCheckedChange={(checked) => handleAddOnChange(addOn, checked as boolean)}
                           />
-                          <Label htmlFor={addOn.id}>{addOn.name}</Label>
+                          <Label htmlFor={addOn.name} className="cursor-pointer">
+                            {addOn.name}
+                          </Label>
                         </div>
-                        <span className="text-sm text-muted-foreground">+${addOn.price.toFixed(2)}</span>
+                        <span className="text-sm font-medium">+${addOn.price.toFixed(2)}</span>
                       </div>
                     ))}
                   </div>
                 </div>
-              )}
 
-              <div>
-                <h3 className="font-semibold mb-3">Special instructions</h3>
-                <textarea
-                  className="w-full p-2 border rounded-md"
-                  rows={3}
-                  placeholder="Any special requests or allergies?"
-                  value={specialInstructions}
-                  onChange={(e) => setSpecialInstructions(e.target.value)}
-                />
-              </div>
-            </div>
+                <div>
+                  <Label htmlFor="instructions" className="text-sm font-medium">
+                    Special Instructions (Optional)
+                  </Label>
+                  <Textarea
+                    id="instructions"
+                    placeholder="Any special requests or dietary requirements..."
+                    value={specialInstructions}
+                    onChange={(e) => setSpecialInstructions(e.target.value)}
+                    className="mt-2"
+                  />
+                </div>
+              </CardContent>
+            </Card>
           )}
 
-          <Separator className="my-6" />
+          <Card>
+            <CardContent className="pt-6">
+              <div className="flex items-center justify-between mb-4">
+                <span className="font-semibold">Quantity</span>
+                <div className="flex items-center space-x-3">
+                  <Button
+                    variant="outline"
+                    size="icon"
+                    onClick={() => setQuantity(Math.max(1, quantity - 1))}
+                    disabled={quantity <= 1}
+                  >
+                    <Minus className="h-4 w-4" />
+                  </Button>
+                  <span className="font-semibold text-lg w-8 text-center">{quantity}</span>
+                  <Button variant="outline" size="icon" onClick={() => setQuantity(quantity + 1)}>
+                    <Plus className="h-4 w-4" />
+                  </Button>
+                </div>
+              </div>
 
-          <div className="flex items-center gap-4 mb-6">
-            <div className="flex items-center border rounded-md">
-              <Button variant="ghost" size="icon" onClick={decrementQuantity} disabled={quantity <= 1}>
-                <Minus className="h-4 w-4" />
+              <div className="flex items-center justify-between mb-4">
+                <span className="font-semibold">Total Price</span>
+                <span className="text-xl font-bold text-primary">${calculateTotalPrice().toFixed(2)}</span>
+              </div>
+
+              <Button onClick={handleAddToCart} className="w-full" size="lg">
+                <ShoppingCart className="h-5 w-5 mr-2" />
+                Add to Cart
               </Button>
-              <span className="w-8 text-center">{quantity}</span>
-              <Button variant="ghost" size="icon" onClick={incrementQuantity}>
-                <Plus className="h-4 w-4" />
-              </Button>
-            </div>
-            <Button className="flex-1" onClick={handleAddToCart}>
-              Add to Cart - ${calculateTotalPrice().toFixed(2)}
-            </Button>
-          </div>
+            </CardContent>
+          </Card>
         </div>
       </div>
     </div>

@@ -66,11 +66,21 @@ export function CartProvider({ children }: { children: React.ReactNode }) {
       )
 
       if (existingItemIndex > -1) {
-        // Item exists, update quantity
+        // Item exists, update quantity and recalculate total price
         const updatedItems = [...prevItems]
         const existingItem = updatedItems[existingItemIndex]
-        existingItem.quantity += newItem.quantity
-        existingItem.totalPrice = existingItem.price * existingItem.quantity
+        const newQuantity = existingItem.quantity + newItem.quantity
+
+        // Calculate price per item (base price + add-ons)
+        const basePrice = existingItem.price
+        const addOnsPrice = existingItem.customizations?.addOns?.reduce((total, addOn) => total + addOn.price, 0) || 0
+        const pricePerItem = basePrice + addOnsPrice
+
+        updatedItems[existingItemIndex] = {
+          ...existingItem,
+          quantity: newQuantity,
+          totalPrice: pricePerItem * newQuantity,
+        }
         return updatedItems
       } else {
         // New item, add to cart
@@ -90,7 +100,21 @@ export function CartProvider({ children }: { children: React.ReactNode }) {
     }
 
     setItems((prevItems) =>
-      prevItems.map((item) => (item.id === itemId ? { ...item, quantity, totalPrice: item.price * quantity } : item)),
+      prevItems.map((item) => {
+        if (item.id === itemId) {
+          // Calculate price per item (base price + add-ons)
+          const basePrice = item.price
+          const addOnsPrice = item.customizations?.addOns?.reduce((total, addOn) => total + addOn.price, 0) || 0
+          const pricePerItem = basePrice + addOnsPrice
+
+          return {
+            ...item,
+            quantity,
+            totalPrice: pricePerItem * quantity,
+          }
+        }
+        return item
+      }),
     )
   }
 
