@@ -3,6 +3,7 @@
 import { useState, useRef } from "react"
 import { useRouter } from "next/navigation"
 import { ChevronLeft, CreditCard, MapPin } from "lucide-react"
+import Link from "next/link"
 
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardFooter, CardHeader, CardTitle } from "@/components/ui/card"
@@ -122,8 +123,15 @@ export default function CheckoutPage() {
   }
 
   if (items.length === 0) {
-    router.push("/menu")
-    return null
+    return (
+      <div className="container px-4 md:px-6 py-8 flex flex-col items-center justify-center min-h-[60vh]">
+        <h1 className="text-2xl font-bold mb-4">Your cart is empty</h1>
+        <p className="text-muted-foreground mb-6">Add some items to your cart before checking out</p>
+        <Button asChild>
+          <Link href="/menu">Browse Menu</Link>
+        </Button>
+      </div>
+    )
   }
 
   return (
