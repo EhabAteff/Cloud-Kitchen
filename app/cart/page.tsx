@@ -80,7 +80,7 @@ export default function CartPage() {
               <div className="space-y-2">
                 <div className="flex justify-between">
                   <span>Subtotal</span>
-                  <span>${totalAmount.toFixed(2)}</span>
+                  <span>{totalAmount} EGP</span>
                 </div>
                 <div className="flex justify-between">
                   <span>Delivery Fee</span>
@@ -89,7 +89,7 @@ export default function CartPage() {
                 <Separator />
                 <div className="flex justify-between font-semibold text-lg">
                   <span>Total</span>
-                  <span>${totalAmount.toFixed(2)}</span>
+                  <span>{totalAmount} EGP</span>
                 </div>
               </div>
 
@@ -115,7 +115,7 @@ function CartItem({ item, onUpdateQuantity, onRemove }) {
 
           <div className="flex-1 min-w-0">
             <h3 className="font-semibold truncate">{item.name}</h3>
-            <p className="text-sm text-muted-foreground">${item.price.toFixed(2)} each</p>
+            <p className="text-sm text-muted-foreground">{item.price} EGP each</p>
 
             {item.customizations?.addOns && item.customizations.addOns.length > 0 && (
               <div className="mt-1">
@@ -154,7 +154,7 @@ function CartItem({ item, onUpdateQuantity, onRemove }) {
               </div>
 
               <div className="flex items-center gap-2">
-                <span className="font-semibold">${item.totalPrice.toFixed(2)}</span>
+                <span className="font-semibold">{item.totalPrice} EGP</span>
                 <Button variant="ghost" size="icon" className="h-8 w-8 text-destructive" onClick={onRemove}>
                   <Trash2 className="h-3 w-3" />
                 </Button>

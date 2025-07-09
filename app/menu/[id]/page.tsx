@@ -15,7 +15,7 @@ import { useCart } from "@/hooks/use-cart"
 import { useToast } from "@/hooks/use-toast"
 import { menuItems } from "@/data/menu-items"
 
-export default function MenuItemPage({ params }: { params: Promise<{ id: string }> }) {
+export default function MenuItemPage({ params }: { params: Promise<{ id: string }> | { id: string } }) {
   const router = useRouter()
   const { addItem, isHydrated } = useCart()
   const { toast } = useToast()
@@ -23,8 +23,8 @@ export default function MenuItemPage({ params }: { params: Promise<{ id: string 
   const [selectedAddOns, setSelectedAddOns] = useState<Array<{ name: string; price: number }>>([])
   const [specialInstructions, setSpecialInstructions] = useState("")
 
-  // Unwrap the params Promise using React.use()
-  const resolvedParams = use(params)
+  // Handle both Promise and regular object params
+  const resolvedParams = params instanceof Promise ? use(params) : params
 
   // Get the item using the resolved params
   const item = menuItems.find((item) => item.id === resolvedParams.id)
@@ -118,7 +118,7 @@ export default function MenuItemPage({ params }: { params: Promise<{ id: string 
         <div className="space-y-6">
           <div>
             <h1 className="text-3xl font-bold">{item.name}</h1>
-            <p className="text-xl font-semibold text-primary mt-2">${item.price.toFixed(2)}</p>
+            <p className="text-xl font-semibold text-primary mt-2">{item.price} EGP</p>
             <p className="text-muted-foreground mt-4">{item.description}</p>
           </div>
 
@@ -143,7 +143,7 @@ export default function MenuItemPage({ params }: { params: Promise<{ id: string 
                             {addOn.name}
                           </Label>
                         </div>
-                        <span className="text-sm font-medium">+${addOn.price.toFixed(2)}</span>
+                        <span className="text-sm font-medium">+{addOn.price} EGP</span>
                       </div>
                     ))}
                   </div>
@@ -187,7 +187,7 @@ export default function MenuItemPage({ params }: { params: Promise<{ id: string 
 
               <div className="flex items-center justify-between mb-4">
                 <span className="font-semibold">Total Price</span>
-                <span className="text-xl font-bold text-primary">${calculateTotalPrice().toFixed(2)}</span>
+                <span className="text-xl font-bold text-primary">{calculateTotalPrice()} EGP</span>
               </div>
 
               <Button onClick={handleAddToCart} className="w-full" size="lg">

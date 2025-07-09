@@ -270,7 +270,7 @@ function OrderCard({
         </div>
         <p className="text-sm font-medium">Estimated time: {order.estimatedTime}</p>
         <p className="text-sm text-muted-foreground mt-1">
-          {order.items.length} items • ${order.totalAmount.toFixed(2)}
+          {order.items.length} items • {order.totalAmount} EGP
         </p>
       </CardContent>
       <CardFooter className="flex gap-2 pt-2">
@@ -412,7 +412,7 @@ function OrderTrackingDetail({ order, currentStep }: { order: Order; currentStep
                         </div>
                       )}
                     </div>
-                    <p className="font-medium">${item.totalPrice.toFixed(2)}</p>
+                    <p className="font-medium">{item.totalPrice} EGP</p>
                   </div>
                 ))}
               </div>

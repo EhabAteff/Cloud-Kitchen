@@ -357,7 +357,7 @@ function OrderSummary({
     return (
       <div className="space-y-4">
         <div className="flex justify-between items-center">
-          <span className="font-semibold">Total: ${totalAmount.toFixed(2)}</span>
+          <span className="font-semibold">Total: {totalAmount} EGP</span>
           <div className="flex items-center gap-2 text-sm text-muted-foreground">
             <Clock className="h-4 w-4" />
             {estimatedTime}
@@ -388,7 +388,7 @@ function OrderSummary({
                   </p>
                 )}
               </div>
-              <p className="font-medium">${item.totalPrice.toFixed(2)}</p>
+              <p className="font-medium">{item.totalPrice} EGP</p>
             </div>
           ))}
         </div>
@@ -398,7 +398,7 @@ function OrderSummary({
         <div className="space-y-2">
           <div className="flex justify-between text-sm">
             <span>Subtotal</span>
-            <span>${totalAmount.toFixed(2)}</span>
+            <span>{totalAmount} EGP</span>
           </div>
           <div className="flex justify-between text-sm">
             <span>Delivery Fee</span>
@@ -407,7 +407,7 @@ function OrderSummary({
           <Separator />
           <div className="flex justify-between font-semibold">
             <span>Total</span>
-            <span>${totalAmount.toFixed(2)}</span>
+            <span>{totalAmount} EGP</span>
           </div>
         </div>
 

@@ -116,7 +116,7 @@ function MenuItemCard({ item }) {
             <p className="text-sm text-muted-foreground line-clamp-2 mt-1">{item.description}</p>
           </div>
           <div className="flex justify-between items-center mt-4">
-            <p className="font-semibold">${item.price.toFixed(2)}</p>
+            <p className="font-semibold">{item.price} EGP</p>
             <Button size="sm">Add to Cart</Button>
           </div>
         </CardContent>
